@@ -1,0 +1,768 @@
+http://www.j2eebrain.com/java-J2ee-mongodb-text-search-and-rockmongo.html
+http://search.cpan.org/~mongodb/MongoDB-v0.704.5.0/lib/MongoDB/Examples.pod
+http://www.codeproject.com/Articles/524602/Beginners-guide-to-using-MongoDB-and-the-offic
+https://www.safaribooksonline.com/library/view/mongodb-the-definitive/9781449344795/ch04.html
+http://mikaelkoskinen.net/post/mongodb-aggregation-framework-examples-in-c
+
+mongo
+show dbs
+use weightWatchers
+show collections
+var cursor = db.getCollection('userMaster').find({"user_type" : "1" })
+    while (cursor.hasNext()) {
+    var record = cursor.next();   
+    print(record.user_firstname,record.user_lastname,record.user_emailid)
+}
+**************************remove***
+db.getCollection('meetingPostLog').remove({_id :ObjectId("57629afb5238bcf0964df531")})
+******************query for record not having post***************
+db.userMaster.aggregate([
+    {
+        $match : {   user_type  : "1" }
+    },
+    {
+        $lookup:{
+            from: "meetingMaster",
+            localField: "meeting_id",
+            foreignField: "meeting_id",
+            as: "meetingInfo"
+        }
+    },
+    {
+        $unwind: { path: "$meetingInfo", preserveNullAndEmptyArrays : true }
+    },
+    {
+        $project : {
+            user_iD : 1,
+            user_type : 2,
+            user_firstname : 3,
+            user_lastname: 4,
+            user_emailid : 5,
+            status : 6,
+            devicetype : 7,
+            meetingPostLog : 8,
+            defaultMeetingId : "$meetingInfo.meeting_id",
+            defaultMeetinglAddress : "$meetingInfo.l_address",
+            defaultMeetingzipCode : "$meetingInfo.zip_code"
+        }
+    },
+    {
+        $lookup : {
+            from: "meetingPostLog",
+            localField: "user_iD",
+            foreignField: "user_id",
+            as: "meetingPostLog"
+        }
+    },
+    {
+        $unwind: { path: "$meetingPostLog", preserveNullAndEmptyArrays : true }
+    },
+    {
+        $match : {
+            $and : [
+                {'meetingPostLog._id': {$exists: false}}
+            ]
+        }
+    }
+])
+**************************query with post count Date Wise user type :1 ********************
+var cursor = db.userMaster.aggregate([
+    {
+        $match : {   user_type  : "1" }
+    },
+    {
+        $lookup:{
+            from: "meetingMaster",
+            localField: "meeting_id",
+            foreignField: "meeting_id",
+            as: "meetingInfo"
+        }
+    },
+    {
+        $unwind: { path: "$meetingInfo", preserveNullAndEmptyArrays : true }
+    },
+    {
+        $project : {
+            user_iD : 1,
+            user_type : 2,
+            user_firstname : 3,
+            user_lastname: 4,
+            user_emailid : 5,
+            status : 6,
+            devicetype : 7,
+            meetingPostLog : 8,
+            defaultMeetingId : "$meetingInfo.meeting_id",
+            defaultMeetinglAddress : "$meetingInfo.l_address",
+            defaultMeetingzipCode : "$meetingInfo.zip_code"
+        }
+    },
+    {
+        $lookup : {
+            from: "meetingPostLog",
+            localField: "user_iD",
+            foreignField: "user_id",
+            as: "meetingPostLog"
+        }
+    },
+    {
+        $unwind: { path: "$meetingPostLog", preserveNullAndEmptyArrays : true }
+    },
+    {
+        $match : {
+            $and : [
+                {
+                    "meetingPostLog.creadted_on" : {
+                        '$gte': ISODate("2014-01-01"),
+                        '$lt': ISODate("2016-06-29T23:59:59")
+                     }
+                }
+            ]
+        }
+    },
+    {
+        $group : {
+            _id : "$user_iD",
+            postLogCount: { $sum: 1 },
+            user_emailid : { $first: '$user_emailid' },
+            user_firstname : { $first: '$user_firstname' },
+            user_lastname : { $first: '$user_lastname' },
+            user_type : { $first: '$user_type' },
+            devicetype : { $first: '$devicetype' },
+            status : { $first: '$status' },
+            defaultMeetingId : { $first: '$defaultMeetingId' },
+            defaultMeetinglAddress : { $first: '$defaultMeetinglAddress' },
+            defaultMeetingzipCode : { $first: '$defaultMeetingzipCode' }
+        }
+    },
+    {
+        $sort: { postLogCount : 1}
+    }
+])
+    
+      while (cursor.hasNext()) {
+    var record = cursor.next();   
+    print(record.user_emailid,record.defaultMeetingId,record.postLogCount)
+}
+***************************************************
+db.getCollection('userMaster').find( { "meeting_id" : { $exists: true } } ).count()
+*********************
+
+db.meetingPostLog.aggregate([
+    {
+        $match : {
+            $and : [
+                {
+                    creadted_on : {
+                        '$gte':  ISODate("2016-06-01T00:00:00Z"),
+                        '$lte':   ISODate("2016-06-14T23:59:59Z") 
+                     }
+                }
+            ]
+        }
+    },
+    {
+        $group : {
+           _id : "$user_id",
+           count: { $sum: 1 }
+        }
+    },
+    {
+        $lookup:{
+            from: "userMaster",
+            localField: "_id",
+            foreignField: "user_iD",
+            as: "userInfo"
+        }
+    },
+    {
+        $unwind : "$userInfo"
+    },
+    {
+        $project : {
+            postLogCount : "$count",
+            user_iD : "$userInfo.user_iD",
+            user_type : "$userInfo.user_type",
+            user_firstname : "$userInfo.user_firstname",
+            user_lastname : "$userInfo.user_lastname",
+            user_emailid : "$userInfo.user_emailid",
+            status : "$userInfo.status",
+            devicetype : "$userInfo.devicetype",
+            meetingId : "$userInfo.meeting_id"
+        }
+    },
+    {
+        $lookup:{
+            from: "meetingMaster",
+            localField: "meetingId",
+            foreignField: "meeting_id",
+            as: "meetingInfo"
+        }
+    },
+    {
+        $unwind : "$meetingInfo"
+    },
+    {
+        $project : {
+            user_iD : 1,
+            user_type : 2,
+            user_firstname : 3,
+            user_lastname: 4,
+            user_emailid : 5,
+            status : 6,
+            devicetype : 7,
+            postLogCount : 8,
+            meetingId : "$meetingInfo.meeting_id",
+            lAddress : "$meetingInfo.l_address",
+            zipCode : "$meetingInfo.zip_code"
+        }
+    }
+]);
+***************************************
+ db.userMaster.aggregate([
+   {
+        $match : {   user_type  : "0" }
+    },
+    {
+   $lookup:
+     {
+       from: "meetingMaster",
+       localField: "user_referencenumber",
+       foreignField: "e_no",
+       as: "INFO"
+     }
+    },
+    {
+        $project : {
+            "INFO.meeting_id" : 1,
+             user_type : 2,
+            user_firstname : 3,
+            user_lastname: 4,
+            user_emailid : 5,
+            status : 6,
+            devicetype : 7,
+           "INFO.l_address" : 8,
+           "INFO.zip_code" :9,
+        }
+    }
+    ])
+
+*****************************List of duplicate email id*************
+db.getCollection('userMaster').aggregate(
+    {"$group" : { "_id": "$user_emailid", "count": { "$sum": 1 } } },
+    {"$match": {"_id" :{ "$ne" : null } , "count" : {"$gt": 1} } }, 
+    {"$project": {"user_emailid" : "$_id", "_id" : 0} }
+)
+    
+****Count Duplicate emial id*********
+    db.getCollection('userMaster').aggregate([
+{"$group":{"_id":"$user_emailid","count":{"$sum":1}}},
+{"$match":{"_id" :{ "$ne" : null },"count":{"$gt":1}}},
+{"$project":{"user_emailid":"$_id" ,"_id":0}},
+{"$group":{"_id":null,"duplicateNames":{"$push":"$user_emailid"}}},
+{"$project":{"_id":0,"duplicateNames":1}}
+])
+************************************Total Text comment post*********************
+
+var cursor = db.getCollection('meetingPostLog').find({"is_text" : true})
+ var count = 0;
+while (cursor.hasNext()) {
+    var record = cursor.next();
+   
+ if(record.meetingcontent.text != null && record.meetingcontent.text != " ") 
+ {  
+    print(record.user_id, record.meetingcontent.text)
+    
+    print("\n")
+     count++; 
+ }
+ }
+ print(count)
+*****************************************************
+
+db.meetingPostLog.aggregate([
+    {
+        $match : { user_type : "0" }
+    },
+    {
+        $match : { is_video : false }
+    },
+    {
+        $project : {
+            _id : 0,
+            user_id : 1,
+            is_video : 2
+        }
+    },
+    {
+   $lookup:
+     {
+       from: "userMaster",
+       localField: "user_id",
+       foreignField: "user_iD",
+       as: "DATA"
+     }
+    }
+])
+******************************is_Deleted post count Userid wise************
+db.meetingPostLog.aggregate([
+     {
+        $match : {  "is_delete" : "1"}
+    },
+
+    {
+        $group : 
+        {
+            _id:"$user_id",
+            count:{$sum:1}
+        }
+    }
+])
+*****************userid wise total post count*************************
+
+
+
+db.userMaster.aggregate([
+    
+    {
+   $lookup:
+     {
+       from: "meetingPostLog",
+       localField: "user_iD",
+       foreignField: "user_id",
+       as: "postData"
+     }
+    },
+    {
+        $project : {
+           
+            user_emailid : 1,
+            postCount : { $size : "$postData"}
+           
+        }
+    }
+    
+])
+*************************manully userid single pass post count & is deleted count***************
+
+
+db.getCollection('meetingPostLog').find({user_id : 1693150143}).count()
+ 
+ 
+ db.getCollection('meetingPostLog').find({
+    "$and": [{
+         "user_id" : 1693150143
+}, 
+    {
+         "is_delete" : "1",
+    }]
+}).count()
+
+
+************************emaild wise device**************
+
+db.userDeviceManager.aggregate([      
+     {
+        $project : 
+        {
+             _id : 0,
+            device_type : 1,
+            user_id : 2
+        }
+     },
+     {
+       $lookup:        
+       {          
+            from: "userMaster",          
+            localField: "user_id",          
+            foreignField: "user_iD",          
+            as: "INFO"        
+        }
+      },
+       {
+        $project : {
+            device_type : 1,
+            user_id : 2,
+            "INFO.user_emailid" : 1
+        }
+    }
+])
+*********************latest record time stamp wise******************
+db.getCollection('meetingPostLog').find({
+    "$and": [{
+         "user_id" : 1780790095
+    }, 
+    {
+         "meeting_id" : "449879",
+    }]
+}).sort({"creadted_on": -1 }).limit(1);
+
+db.meetingPostLog.find( { 
+    $and: [ 
+        { meeting_id: { $eq: "449879" } },
+        {creadted_on : { $gt : ISODate("2016-06-01T12:34:57.769Z") }
+        }
+    ]
+} ).sort({"creadted_on": -1 }).limit(1);
+
+
+db.getCollection('meetingPostLog').find().limit(1).sort({$natural:-1})
+*******************************Update Query**************************
+db.userMaster.updateMany(
+    {
+        user_type : "1"
+    },
+    {
+        $set: { status: 1 }
+    }
+)
+******************************************************
+Print records like excel
+var cursor = db.getCollection('userMaster').find({status : 0})
+
+while (cursor.hasNext()) {
+    var record = cursor.next();   
+    print(record.user_lastname)
+}
+*********************************************
+db.getCollection('userMaster').find({
+    "$and": [{
+        is_active : "1"
+    }, {
+        status : 1
+    }]
+}).count(); --- Active & verified
+
+db.getCollection('userMaster').find({is_active: "1"}).count() -- user Active user
+
+db.getCollection('userMaster').find({is_active: "0"}).count() -- user inactive user
+
+db.getCollection('userMaster').find({status: 0}).count() -- user Not - verified count
+************************And condition *********************************
+db.getCollection('pushNotificationLogDetails').find({
+    "$and": [{
+        to_user_id : 1780790095
+    }, {
+        meeting_post_id : 1809263072
+    }, {
+        is_like : 1
+    }]
+});
+
+db.getCollection('userMaster').find({
+    "$and": [{
+        user_type : "1"
+    }, {
+        status : 0
+    }]
+}).count();
+
+****************************************************
+
+
+db.userDeviceManager.aggregate([      { $match : { device_type : "0" }},      {$lookup:        {          from: "userMaster",          localField: "user_id",          foreignField: "user_iD",          as: "INFO"        }}])db.userDeviceManager.aggregate([      { $match : { device_type : "1" }},      {$lookup:        {          from: "userMaster",          localField: "user_id",          foreignField: "user_iD",          as: "INFO"        }}])
+
+*********************************total no of avctive user****************
+db.getCollection('userMaster').find({is_active : "1"}).count()
+
+*******************************total no of Leader user**********************************
+db.getCollection('userMaster').find({user_type : "0"}).count()
+
+********************************************************************
+
+db.getCollection('userMaster').find({
+    "$and": [{
+        user_type : "2"
+    }, {
+        is_active : "1",
+    }]
+}).count();
+
+********************************total Welcome,text,images************************************
+db.getCollection('meetingPostLog').find({is_image : true}).count()
+db.getCollection('meetingPostLog').find({is_text : true}).count()
+db.getCollection('meetingPostLog').find({is_welcome : true}).count()
+db.getCollection('meetingPostLog').find({is_event : true}).count()
+
+*******************************total meeting wise count**********************************
+db.getCollection('meetingMaster').find({})
+db.getCollection('meetingCheckInLogs').find({meeting_id : "444796"})
+
+***********************************************************meeting wise checkin***************************
+ db.meetingMaster.aggregate([
+    {
+        $project : {
+            _id : 0,
+            meeting_id : 1
+        }
+    },
+    {
+   $lookup:
+     {
+       from: "meetingCheckInLogs",
+       localField: "meeting_id",
+       foreignField: "meeting_id",
+       as: "chechLogData"
+     }
+    },
+    {
+        $project : {
+            meeting_id : 1,
+            countCheckin : { $size : "$chechLogData"}
+        }
+    }
+])
+********************************meeting wise post**************************************
+
+var cursor = db.meetingMaster.aggregate([
+    
+    {
+   $lookup:
+     {
+       from: "meetingPostLog",
+       localField: "meeting_id",
+       foreignField: "meeting_id",
+       as: "postData"
+     }
+    },
+    {
+        $project : {
+            meeting_id : 1,
+            postCount : { $size : "$postData"}
+        }
+    }
+])
+
+while (cursor.hasNext()) {
+    var record = cursor.next();   
+    print(record.meeting_id, record.postCount)
+}
+
+
+ db.meetingMaster.aggregate([
+    {
+        $project : {
+            _id : 0,
+            meeting_id : 1
+        }
+    },
+    {
+   $lookup:
+     {
+       from: "meetingPostLog",
+       localField: "meeting_id",
+       foreignField: "meeting_id",
+       as: "postData"
+     }
+    },
+    {
+        $project : {
+            meeting_id : 1,
+            postCount : { $size : "$postData"}
+        }
+    }
+])
+********************************************************* single table count data**********************
+db.collectionName.aggregate([
+    {"$group" : 
+        {
+            _id:"$field",
+            count:{$sum:1}
+        }
+    }
+])
+
+
+*******************************************************postlikelog****************************************
+
+
+db.meetingMaster.aggregate([
+    {
+        $project : {
+            _id : 0,
+            meeting_id : 1
+        }
+    },
+    {
+   $lookup:
+     {
+       from: "meetingPostLog",
+       localField: "meeting_id",
+       foreignField: "meeting_id",
+       as: "postData"
+     }
+    },
+    {
+        $project : {
+            meeting_id : 1,
+            "postData.meeting_post_id" : 1
+        }
+    },
+    {
+        $unwind : "$postData"
+    },
+    {
+   $lookup:
+     {
+       from: "postLikeLog",
+       localField: "postData.meeting_post_id",
+       foreignField: "meeting_post_id",
+       as: "postLikeData"
+     }
+    }
+])
+*******************************************reference but not getting output correct for post like log data**********
+db.meetingPostLog.aggregate([
+    {
+        $match : { meeting_post_id : 640203235 }
+    },
+    {
+        $project : {
+            _id : 0,
+            meeting_post_id : 1
+        }
+    },
+    {
+   $lookup:
+     {
+       from: "postLikeLog",
+       localField: "meeting_post_id",
+       foreignField: "meeting_post_id",
+       as: "postLikeData"
+     }
+    }
+])
+
+------------------------------------------
+ db.meetingMaster.aggregate([
+    {
+        $project : {
+            _id : 0,
+            meeting_id : 1
+        }
+    },
+    {
+   $lookup:
+     {
+       from: "meetingPostLog",
+       localField: "meeting_id",
+       foreignField: "meeting_id",
+       as: "postData"
+     }
+    },
+    {
+        $project : {
+            meeting_id : 1,
+            "postData.meeting_post_id" : 1
+        }
+    },
+    {
+        $unwind : "$postData"
+    },
+    {
+   $lookup:
+     {
+       from: "postLikeLog",
+       localField: "postData.meeting_post_id",
+       foreignField: "meeting_post_id",
+       as: "postLikeData"
+     }
+    }
+
+])
+******************************************************************
+
+/*Index*/
+db.userMaster.createdIndex({user_emailid : 1});
+***************************Last updated record get & sorting & limit set********************************************
+
+db.getCollection('pushNotificationLogDetails').find({ meeting_post_id : 1049752107}).sort({"created_on": -1 }).limit(1);
+-1 means DESC
+1 means AESC
+
+for c#
+SetSortOrder(SortBy.Descending("creadted_on")).SetLimit(20).ToArray()
+
+****************** Update all Emailid in lowercase **********************
+db.UploadAppUserDetails.find().forEach(
+  function( e ) {
+    e.Email_Id = e.Email_Id.toLowerCase();
+    db.UploadAppUserDetails.save( e );
+  }
+)
+
+*****************mongo Backup ********************
+mongoexport --db weightWatchers --collection InviteMembersLog --out InviteMembersLog.json
+
+mongoimport -d weightWatchers2 -c nameOfCollection --file nameOfCollection.json
+
+mongoexport --db weightWatchers --collection InviteMembersLog --out InviteMembersLog.json
+
+
+
+*******************************************BAckup******************************
+mongoexport --db weightWatchers --collection InviteMembersLog --out InviteMembersLog.json
+mongoexport --db weightWatchers --collection LogDetails --out LogDetails.json
+mongoexport --db weightWatchers --collection UploadAppUserDetails --out UploadAppUserDetails.json
+mongoexport --db weightWatchers --collection WW_MeetingSample --out WW_MeetingSample.json
+
+mongoexport --db weightWatchers --collection meetingCheckInLogs --out meetingCheckInLogs.json
+mongoexport --db weightWatchers --collection meetingMaster --out meetingMaster.json
+mongoexport --db weightWatchers --collection meetingPostLog --out meetingPostLog.json
+mongoexport --db weightWatchers --collection meetingPostLogDetails --out meetingPostLogDetails.json
+
+mongoexport --db weightWatchers --collection postCommentLog --out postCommentLog.json
+mongoexport --db weightWatchers --collection postLikeLog --out postLikeLog.json
+mongoexport --db weightWatchers --collection pushNotificationLogDetails --out pushNotificationLogDetails.json
+mongoexport --db weightWatchers --collection uplaodAppDetails --out uplaodAppDetails.json
+
+mongoexport --db weightWatchers --collection userDetail --out userDetail.json
+mongoexport --db weightWatchers --collection userDeviceManager --out userDeviceManager.json
+mongoexport --db weightWatchers --collection userMaster --out userMaster.json
+
+
+
+
+mongoimport --db weightWatchers2 --collection InviteMembersLog --file InviteMembersLog.json
+mongoimport --db weightWatchers2 --collection LogDetails --file LogDetails.json
+mongoimport --db weightWatchers2 --collection UploadAppUserDetails --file UploadAppUserDetails.json
+mongoimport --db weightWatchers2 --collection WW_MeetingSample --file WW_MeetingSample.json
+
+mongoimport --db weightWatchers2 --collection meetingCheckInLogs --file meetingCheckInLogs.json
+mongoimport --db weightWatchers2 --collection meetingMaster --file meetingMaster.json
+mongoimport --db weightWatchers2 --collection meetingPostLog --file meetingPostLog.json
+mongoimport --db weightWatchers2 --collection meetingPostLogDetails --file meetingPostLogDetails.json
+
+mongoimport --db weightWatchers2 --collection postCommentLog --file postCommentLog.json
+mongoimport --db weightWatchers2 --collection postLikeLog --file postLikeLog.json
+mongoimport --db weightWatchers2 --collection pushNotificationLogDetails --file pushNotificationLogDetails.json
+mongoimport --db weightWatchers2 --collection uplaodAppDetails --file uplaodAppDetails.json
+
+mongoimport --db weightWatchers2 --collection userDetail --file userDetail.json
+mongoimport --db weightWatchers2 --collection userDeviceManager --file userDeviceManager.json
+mongoimport --db weightWatchers2 --collection userMaster --file userMaster.json
+
+
+
+
+***********************lookup**********************
+db.userDeviceManager.aggregate([
+      { $match : { device_type : "0" }},
+      {$lookup:
+        {
+          from: "userMaster",
+          localField: "user_id",
+          foreignField: "user_iD",
+          as: "INFO"
+        }}
+])
+
+db.userDeviceManager.aggregate([
+      { $match : { device_type : "1" }},
+      {$lookup:
+        {
+          from: "userMaster",
+          localField: "user_id",
+          foreignField: "user_iD",
+          as: "INFO"
+        }}
+])
