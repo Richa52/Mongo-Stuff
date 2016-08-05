@@ -1,0 +1,33 @@
+//Join Table
+db.meetingPostLog.aggregate([
+       { $match : { meeting_id : "368832" }},
+      {$lookup:
+        {
+          from: "userMaster",
+          localField: "user_id",
+          foreignField: "user_iD",
+          as: "INFO"
+        }}
+])
+
+
+
+//mearge two coulmn and search
+db.getCollection('userMaster').aggregate(
+                  {$project:{Name:{$concat:["$user_firstname"," ","$user_lastname"]}}},
+                  {$match:{Name:/.*manish s.*/}} );
+
+//sort
+db.getCollection('userMaster').find({}).sort({created_date:-1}).limit(20)
+
+//using In Queris
+db.userMaster.aggregate([
+       {$match : {user_type: { $in: ["2", "1"] }}},
+      {$lookup:
+        {
+          from: "userDeviceManager",
+          localField: "user_iD",
+          foreignField: "user_id",
+          as: "INFO"
+        }}
+])
