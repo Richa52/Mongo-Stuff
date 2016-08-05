@@ -1,0 +1,31 @@
+db.userMaster.find({$or:[{user_emailid:"kkp@grr.la"},{user_lastname:"Patel"}]})
+
+delete in mongodb + c#
+
+Translate SQL To MongoDb--:
+
+http://klaus.dk/sqltomongodb/
+
+// check which device. in jequery
+
+if (navigator.userAgent.match(/Android/i)) {
+            $("#divAnd").show();
+            $("#divIOS").hide();
+        }
+        else if (navigator.userAgent.match(/iPhone/i)) {
+            $("#divAnd").hide();
+            $("#divIOS").show();
+        }
+        else if (navigator.userAgent.match(/iPad/i)) {
+            $("#divAnd").hide();
+            $("#divIOS").show();
+        }
+        else if (navigator.userAgent.match(/iPod/i)) {
+            $("#divAnd").hide();
+            $("#divIOS").show();
+        }
+        else {
+            $("#divAnd").show();
+            $("#divIOS").show();
+        }
+

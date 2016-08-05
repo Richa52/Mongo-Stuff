@@ -1,0 +1,36 @@
+https://robomongo.org/download 0.9.0 RC4
+
+
+// connect server
+mongod.exe --storageEngine=mmapv1 --config c:\mongo\mongo.config
+
+mongod.exe --storageEngine=mmapv1 --config c:\mongo\mongo.config
+
+
+Microsoft Windows [Version 6.3.9600]
+(c) 2013 Microsoft Corporation. All rights reserved.
+
+C:\Users\Aditya Nayak>cd /
+
+C:\>cd mongo
+
+C:\mongo>cd bin
+
+C:\mongo\bin>mongod.exe --storageEngine=mmapv1 --config c:\mongo\mongo.config
+2016-05-07T13:49:08.156+0530 W CONTROL  [main] --diaglog is deprecated and will
+be removed in a future release
+2016-05-07T13:49:08.163+0530 I COMMAND  [main] diagLogging level=3
+2016-05-07T13:49:08.176+0530 I COMMAND  [main] diagLogging using file C:\mongo\d
+ata/diaglog.572da4fc
+2016-05-07T13:49:08.177+0530 I CONTROL  [main] log file "C:\mongo\log\mongodb.lo
+g" exists; moved to "C:\mongo\log\mongodb.log.2016-05-07T08-19-08".
+
+C:\mongo\bin>
+
+
+RoboMongo 0.9.0-RC4
+-----------------------
+
+manage connection -> create -> Give name (name:Local) -> Save
+
+localhost:27017

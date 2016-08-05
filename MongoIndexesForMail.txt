@@ -1,0 +1,555 @@
+http://mikaelkoskinen.net/post/mongodb-aggregation-framework-examples-in-c
+
+Using username "ec2-user".
+Authenticating with public key "imported-openssh-key"
+Last login: Fri May 13 06:46:34 2016 from 202.131.112.86
+
+       __|  __|_  )
+       _|  (     /   Amazon Linux AMI
+      ___|\___|___|
+
+https://aws.amazon.com/amazon-linux-ami/2015.09-release-notes/
+15 package(s) needed for security, out of 55 available
+Run "sudo yum update" to apply all updates.
+Amazon Linux version 2016.03 is available.
+[ec2-user@ip-172-31-59-45 ~]$ mongo
+MongoDB shell version: 3.2.3
+connecting to: test
+Server has startup warnings:
+2016-02-24T11:45:45.958+0000 I CONTROL  [initandlisten]
+2016-02-24T11:45:45.958+0000 I CONTROL  [initandlisten] ** WARNING: /sys/kernel/                                                                                                 mm/transparent_hugepage/defrag is 'always'.
+2016-02-24T11:45:45.958+0000 I CONTROL  [initandlisten] **        We suggest set                                                                                                 ting it to 'never'
+2016-02-24T11:45:45.958+0000 I CONTROL  [initandlisten]
+> show dbs
+credencysTest   0.000GB
+local           0.000GB
+test            0.000GB
+weightWatchers  0.003GB
+> use weightWatchers
+switched to db weightWatchers
+> show collections
+InviteMembersLog
+LogDetails
+UploadAppUserDetails
+WW_MeetingSample
+meetingCheckInLogs
+meetingMaster
+meetingPostLog
+meetingPostLogDetails
+postCommentLog
+postLikeLog
+pushNotificationLogDetails
+uplaodAppDetails
+userDetail
+userDeviceManager
+userMaster
+> db.userMaster.getIndexes()
+[
+        {
+                "v" : 1,
+                "key" : {
+                        "_id" : 1
+                },
+                "name" : "_id_",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_firstname" : 1
+                },
+                "name" : "user_firstname_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_iD" : 1
+                },
+                "name" : "user_iD_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_type" : 1
+                },
+                "name" : "user_type_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "status" : 1
+                },
+                "name" : "status_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_profilevisibility" : 1
+                },
+                "name" : "user_profilevisibility_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_membersince" : 1
+                },
+                "name" : "user_membersince_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_story" : 1
+                },
+                "name" : "user_story_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_likes" : 1
+                },
+                "name" : "user_likes_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_weightloss" : 1
+                },
+                "name" : "user_weightloss_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_languages" : 1
+                },
+                "name" : "user_languages_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_strengths" : 1
+                },
+                "name" : "user_strengths_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_skills" : 1
+                },
+                "name" : "user_skills_1",
+                "ns" : "weightWatchers.userMaster"
+        }
+]
+> db.userMaster.createIndex({user_emailid : 1})
+{
+        "createdCollectionAutomatically" : false,
+        "numIndexesBefore" : 13,
+        "numIndexesAfter" : 14,
+        "ok" : 1
+}
+>
+> db.userMaster.getIndexes()
+[
+        {
+                "v" : 1,
+                "key" : {
+                        "_id" : 1
+                },
+                "name" : "_id_",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_firstname" : 1
+                },
+                "name" : "user_firstname_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_iD" : 1
+                },
+                "name" : "user_iD_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_type" : 1
+                },
+                "name" : "user_type_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "status" : 1
+                },
+                "name" : "status_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_profilevisibility" : 1
+                },
+                "name" : "user_profilevisibility_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_membersince" : 1
+                },
+                "name" : "user_membersince_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_story" : 1
+                },
+                "name" : "user_story_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_likes" : 1
+                },
+                "name" : "user_likes_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_weightloss" : 1
+                },
+                "name" : "user_weightloss_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_languages" : 1
+                },
+                "name" : "user_languages_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_strengths" : 1
+                },
+                "name" : "user_strengths_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_skills" : 1
+                },
+                "name" : "user_skills_1",
+                "ns" : "weightWatchers.userMaster"
+        },
+        {
+                "v" : 1,
+                "key" : {
+                        "user_emailid" : 1
+                },
+                "name" : "user_emailid_1",
+                "ns" : "weightWatchers.userMaster"
+        }
+]
+> db.userMaster.find({user_emailid: 'ritu.patel@credencys.com'})
+{ "_id" : "1972740109", "user_iD" : 461456769, "user_emailid" : "ritu.patel@credencys.com", "user_firstname" : "Ritu", "user_lastname" : "Ortu", "user_password" : "UUBiivqfloWOL88J/O6U2A==", "user_salt" : "^uBaPoc#J8Wvk2y", "user_zip" : "12345", "user_referencenumber" : "12345", "user_type" : "1", "emailAuthCode" : "0824", "devicetoken" : "", "user_profilename" : "Ritu", "devicetype" : "0", "deviceudid" : "1", "deviceos" : "4.4.4", "status" : 1, "WrongAttempedCount" : NumberLong(0), "resetkey" : 0, "user_profilepic" : "2c7368e48fd44a4b9493b154bbc2dbbc.jpg", "user_profilevisibility" : "0", "is_active" : "1", "created_date" : ISODate("2016-05-04T05:22:26.017Z"), "meeting_id" : "128569", "user_ContactNumber" : "1234567890", "user_address" : "", "user_city" : "", "user_state" : "Alaska", "user_dob" : "", "user_gender" : "0", "user_role" : "", "user_story" : "", "user_likes" : "", "user_languages" : "", "user_skills" : "", "modifed_by" : "461456769", "modified_on" : "5/12/2016 10:18:15 AM" }
+> db.userMaster.find({user_emailid: 'ritu.patel@credencys.com'}).pretty()
+{
+        "_id" : "1972740109",
+        "user_iD" : 461456769,
+        "user_emailid" : "ritu.patel@credencys.com",
+        "user_firstname" : "Ritu",
+        "user_lastname" : "Ortu",
+        "user_password" : "UUBiivqfloWOL88J/O6U2A==",
+        "user_salt" : "^uBaPoc#J8Wvk2y",
+        "user_zip" : "12345",
+        "user_referencenumber" : "12345",
+        "user_type" : "1",
+        "emailAuthCode" : "0824",
+        "devicetoken" : "",
+        "user_profilename" : "Ritu",
+        "devicetype" : "0",
+        "deviceudid" : "1",
+        "deviceos" : "4.4.4",
+        "status" : 1,
+        "WrongAttempedCount" : NumberLong(0),
+        "resetkey" : 0,
+        "user_profilepic" : "2c7368e48fd44a4b9493b154bbc2dbbc.jpg",
+        "user_profilevisibility" : "0",
+        "is_active" : "1",
+        "created_date" : ISODate("2016-05-04T05:22:26.017Z"),
+        "meeting_id" : "128569",
+        "user_ContactNumber" : "1234567890",
+        "user_address" : "",
+        "user_city" : "",
+        "user_state" : "Alaska",
+        "user_dob" : "",
+        "user_gender" : "0",
+        "user_role" : "",
+        "user_story" : "",
+        "user_likes" : "",
+        "user_languages" : "",
+        "user_skills" : "",
+        "modifed_by" : "461456769",
+        "modified_on" : "5/12/2016 10:18:15 AM"
+}
+> db.userMaster.find({user_emailid: 'ritu.patel@credencys.com'}).explain()
+{
+        "queryPlanner" : {
+                "plannerVersion" : 1,
+                "namespace" : "weightWatchers.userMaster",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "user_emailid" : {
+                                "$eq" : "ritu.patel@credencys.com"
+                        }
+                },
+                "winningPlan" : {
+                        "stage" : "FETCH",
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "keyPattern" : {
+                                        "user_emailid" : 1
+                                },
+                                "indexName" : "user_emailid_1",
+                                "isMultiKey" : false,
+                                "isUnique" : false,
+                                "isSparse" : false,
+                                "isPartial" : false,
+                                "indexVersion" : 1,
+                                "direction" : "forward",
+                                "indexBounds" : {
+                                        "user_emailid" : [
+                                                "[\"ritu.patel@credencys.com\", \"ritu.patel@credencys.com\"]"
+                                        ]
+                                }
+                        }
+                },
+                "rejectedPlans" : [ ]
+        },
+        "serverInfo" : {
+                "host" : "ip-172-31-59-45",
+                "port" : 27017,
+                "version" : "3.2.3",
+                "gitVersion" : "b326ba837cf6f49d65c2f85e1b70f6f31ece7937"
+        },
+        "ok" : 1
+}
+> db.userMaster.find({user_emailid: 'ritu.patel@credencys.com'}).explain(true)
+{
+        "queryPlanner" : {
+                "plannerVersion" : 1,
+                "namespace" : "weightWatchers.userMaster",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "user_emailid" : {
+                                "$eq" : "ritu.patel@credencys.com"
+                        }
+                },
+                "winningPlan" : {
+                        "stage" : "FETCH",
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "keyPattern" : {
+                                        "user_emailid" : 1
+                                },
+                                "indexName" : "user_emailid_1",
+                                "isMultiKey" : false,
+                                "isUnique" : false,
+                                "isSparse" : false,
+                                "isPartial" : false,
+                                "indexVersion" : 1,
+                                "direction" : "forward",
+                                "indexBounds" : {
+                                        "user_emailid" : [
+                                                "[\"ritu.patel@credencys.com\", \"ritu.patel@credencys.com\"]"
+                                        ]
+                                }
+                        }
+                },
+                "rejectedPlans" : [ ]
+        },
+        "executionStats" : {
+                "executionSuccess" : true,
+                "nReturned" : 1,
+                "executionTimeMillis" : 0,
+                "totalKeysExamined" : 1,
+                "totalDocsExamined" : 1,
+                "executionStages" : {
+                        "stage" : "FETCH",
+                        "nReturned" : 1,
+                        "executionTimeMillisEstimate" : 0,
+                        "works" : 2,
+                        "advanced" : 1,
+                        "needTime" : 0,
+                        "needYield" : 0,
+                        "saveState" : 0,
+                        "restoreState" : 0,
+                        "isEOF" : 1,
+                        "invalidates" : 0,
+                        "docsExamined" : 1,
+                        "alreadyHasObj" : 0,
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "nReturned" : 1,
+                                "executionTimeMillisEstimate" : 0,
+                                "works" : 2,
+                                "advanced" : 1,
+                                "needTime" : 0,
+                                "needYield" : 0,
+                                "saveState" : 0,
+                                "restoreState" : 0,
+                                "isEOF" : 1,
+                                "invalidates" : 0,
+                                "keyPattern" : {
+                                        "user_emailid" : 1
+                                },
+                                "indexName" : "user_emailid_1",
+                                "isMultiKey" : false,
+                                "isUnique" : false,
+                                "isSparse" : false,
+                                "isPartial" : false,
+                                "indexVersion" : 1,
+                                "direction" : "forward",
+                                "indexBounds" : {
+                                        "user_emailid" : [
+                                                "[\"ritu.patel@credencys.com\", \"ritu.patel@credencys.com\"]"
+                                        ]
+                                },
+                                "keysExamined" : 1,
+                                "dupsTested" : 0,
+                                "dupsDropped" : 0,
+                                "seenInvalidated" : 0
+                        }
+                },
+                "allPlansExecution" : [ ]
+        },
+        "serverInfo" : {
+                "host" : "ip-172-31-59-45",
+                "port" : 27017,
+                "version" : "3.2.3",
+                "gitVersion" : "b326ba837cf6f49d65c2f85e1b70f6f31ece7937"
+        },
+        "ok" : 1
+}
+>
+> db.userMaster.find({user_emailid: 'ritu.patel@credencys.com'}).explain(true)
+{
+        "queryPlanner" : {
+                "plannerVersion" : 1,
+                "namespace" : "weightWatchers.userMaster",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "user_emailid" : {
+                                "$eq" : "ritu.patel@credencys.com"
+                        }
+                },
+                "winningPlan" : {
+                        "stage" : "FETCH",
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "keyPattern" : {
+                                        "user_emailid" : 1
+                                },
+                                "indexName" : "user_emailid_1",
+                                "isMultiKey" : false,
+                                "isUnique" : false,
+                                "isSparse" : false,
+                                "isPartial" : false,
+                                "indexVersion" : 1,
+                                "direction" : "forward",
+                                "indexBounds" : {
+                                        "user_emailid" : [
+                                                "[\"ritu.patel@credencys.com\", \"ritu.patel@credencys.com\"]"
+                                        ]
+                                }
+                        }
+                },
+                "rejectedPlans" : [ ]
+        },
+        "executionStats" : {
+                "executionSuccess" : true,
+                "nReturned" : 1,
+                "executionTimeMillis" : 0,
+                "totalKeysExamined" : 1,
+                "totalDocsExamined" : 1,
+                "executionStages" : {
+                        "stage" : "FETCH",
+                        "nReturned" : 1,
+                        "executionTimeMillisEstimate" : 0,
+                        "works" : 2,
+                        "advanced" : 1,
+                        "needTime" : 0,
+                        "needYield" : 0,
+                        "saveState" : 0,
+                        "restoreState" : 0,
+                        "isEOF" : 1,
+                        "invalidates" : 0,
+                        "docsExamined" : 1,
+                        "alreadyHasObj" : 0,
+                        "inputStage" : {
+                                "stage" : "IXSCAN",
+                                "nReturned" : 1,
+                                "executionTimeMillisEstimate" : 0,
+                                "works" : 2,
+                                "advanced" : 1,
+                                "needTime" : 0,
+                                "needYield" : 0,
+                                "saveState" : 0,
+                                "restoreState" : 0,
+                                "isEOF" : 1,
+                                "invalidates" : 0,
+                                "keyPattern" : {
+                                        "user_emailid" : 1
+                                },
+                                "indexName" : "user_emailid_1",
+                                "isMultiKey" : false,
+                                "isUnique" : false,
+                                "isSparse" : false,
+                                "isPartial" : false,
+                                "indexVersion" : 1,
+                                "direction" : "forward",
+                                "indexBounds" : {
+                                        "user_emailid" : [
+                                                "[\"ritu.patel@credencys.com\", \"ritu.patel@credencys.com\"]"
+                                        ]
+                                },
+                                "keysExamined" : 1,
+                                "dupsTested" : 0,
+                                "dupsDropped" : 0,
+                                "seenInvalidated" : 0
+                        }
+                },
+                "allPlansExecution" : [ ]
+        },
+        "serverInfo" : {
+                "host" : "ip-172-31-59-45",
+                "port" : 27017,
+                "version" : "3.2.3",
+                "gitVersion" : "b326ba837cf6f49d65c2f85e1b70f6f31ece7937"
+        },
+        "ok" : 1
+}
+>
