@@ -1,0 +1,77 @@
+db.getCollection('userMaster').find( { "meeting_id" : { $exists: true } } ).count()
+db.getCollection('userMaster').find({"user_type" : "1" }).count()
+var cursor = db.userMaster.aggregate([
+    {
+        $match : {   user_type  : "1" }
+    },
+    {
+        $lookup:{
+            from: "meetingMaster",
+            localField: "meeting_id",
+            foreignField: "meeting_id",
+            as: "meetingInfo"
+        }
+    },
+    {
+        $unwind: { path: "$meetingInfo", preserveNullAndEmptyArrays : true }
+    },
+    {
+        $project : {
+            user_iD : 1,
+            user_type : 2,
+            user_firstname : 3,
+            user_lastname: 4,
+            user_emailid : 5,
+            status : 6,
+            devicetype : 7,
+            meetingPostLog : 8,
+            defaultMeetingId : "$meetingInfo.meeting_id",
+            defaultMeetinglAddress : "$meetingInfo.l_address",
+            defaultMeetingzipCode : "$meetingInfo.zip_code"
+        }
+    },
+    {
+        $lookup : {
+            from: "meetingPostLog",
+            localField: "user_iD",
+            foreignField: "user_id",
+            as: "meetingPostLog"
+        }
+    },
+    {
+        $unwind: { path: "$meetingPostLog", preserveNullAndEmptyArrays : true }
+    },
+    {
+        $match : {
+            $and : [
+                {
+                    "meetingPostLog.creadted_on" : {
+                        '$gte': ISODate("2015-06-01"),
+                        '$lt': ISODate("2016-06-29T23:59:59")
+                     }
+                }
+            ]
+        }
+    },
+    {
+        $group : {
+            _id : "$user_iD",
+            postLogCount: { $sum: 1 },
+            user_emailid : { $first: '$user_emailid' },
+            user_firstname : { $first: '$user_firstname' },
+            user_lastname : { $first: '$user_lastname' },
+            user_type : { $first: '$user_type' },
+            devicetype : { $first: '$devicetype' },
+            status : { $first: '$status' },
+            defaultMeetingId : { $first: '$defaultMeetingId' },
+            defaultMeetinglAddress : { $first: '$defaultMeetinglAddress' },
+            defaultMeetingzipCode : { $first: '$defaultMeetingzipCode' }
+        }
+    },
+    { $sort: { postLogCount : 1} }
+    ])
+    
+     while (cursor.hasNext()) {
+    var record = cursor.next();   
+    print(record.user_emailid, record.postLogCount,record.defaultMeetingId)
+}

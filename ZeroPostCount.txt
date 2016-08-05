@@ -1,0 +1,54 @@
+
+
+var cursor = db.userMaster.aggregate([
+    {
+        $match : {   user_type  : "1" }
+    },
+    {
+        $lookup:{
+            from: "meetingMaster",
+            localField: "meeting_id",
+            foreignField: "meeting_id",
+            as: "meetingInfo"
+        }
+    },
+    {
+        $unwind: { path: "$meetingInfo", preserveNullAndEmptyArrays : true }
+    },
+    {
+        $project : {
+            user_iD : 1,
+            user_type : 2,
+            user_firstname : 3,
+            user_lastname: 4,
+            user_emailid : 5,
+            status : 6,
+            devicetype : 7,
+            meetingPostLog : 8,
+            defaultMeetingId : "$meetingInfo.meeting_id",
+            defaultMeetinglAddress : "$meetingInfo.l_address",
+            defaultMeetingzipCode : "$meetingInfo.zip_code"
+        }
+    },
+    {
+        $lookup : {
+            from: "meetingPostLog",
+            localField: "user_iD",
+            foreignField: "user_id",
+            as: "meetingPostLog"
+        }
+    },
+    {
+        $unwind: { path: "$meetingPostLog", preserveNullAndEmptyArrays : true }
+    },
+    {
+        $match : {
+          
+                'meetingPostLog._id': {$exists: false}
+        }
+    }
+])
+      while (cursor.hasNext()) {
+    var record = cursor.next();   
+    print(record.devicetype)
+}
